@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Recommendation System</title>
+    <!-- Meta tags for accessibility and SEO -->
+    <meta name="description" content="Book Recommendation System - Discover your next favorite book">
+    <meta name="theme-color" content="#4a90e2">
+    <!-- Preload fonts for better performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --primary-dark: #357abd;
+            --secondary-color: #7b68ee;
+            --accent-color: #50c878;
+            --error-color: #e74c3c;
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --bg-primary: #f7fafc;
+            --bg-secondary: #ffffff;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 1rem;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Subtle book-pattern background using SVG data URI */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 24 24' fill='%23f1f5f9'><path d='M3 6h10v12H3z' opacity='0.06'/><path d='M21 6h-10v12h10z' opacity='0.04'/></svg>");
+            background-repeat: repeat;
+            background-size: 240px 240px;
+            opacity: 0.8;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* High contrast mode support */
+        @media (forced-colors: active) {
+            :root {
+                --primary-color: SelectedItem;
+                --accent-color: SelectedItem;
+                --text-primary: CanvasText;
+                --bg-primary: Canvas;
+                --bg-secondary: Canvas;
+            }
+        }
+        
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+        
+        header {
+            text-align: center;
+            padding: 2.5rem 0;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            margin-bottom: 2rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.025em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header-subtitle {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        /* Hero / Showcase */
+        .hero {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+            box-shadow: var(--shadow-md);
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-left {
+            flex: 0 0 360px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-cover {
+            width: 320px;
+            height: 420px;
+            border-radius: 1rem;
+            box-shadow: 0 20px 40px rgba(10,20,40,0.15);
+            object-fit: cover;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+        }
+
+        .hero-right {
+            flex: 1 1 auto;
+            padding-right: 1rem;
+        }
+
+        .hero-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .hero-sub {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .hero-ctas {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .chip {
+            padding: 0.5rem 0.75rem;
+            border-radius: 999px;
+            background: rgba(74,144,226,0.08);
+            color: var(--primary-color);
+            font-weight: 600;
+            border: 1px solid rgba(74,144,226,0.12);
+        }
+        
+        .tab-button {
+            padding: 1rem 2rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--primary-color);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 1.125rem;
+            font-weight: 500;
+            transition: var(--transition);
+            color: var(--primary-color);
+            min-width: 200px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            outline: none;
+        }
+        
+        .tab-button:focus-visible {
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.3);
+        }
+        
+        .tab-button.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: transparent;
+        }
+        
+        .tab-button:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .tab-button:active {
+            transform: translateY(0);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .search-section {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+        }
+        
+        .search-section:focus-within {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .search-wrapper {
+            flex: 1;
+            position: relative;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            font-size: 1.125rem;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            transition: var(--transition);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        
+        input[type="text"]:hover {
+            border-color: #cbd5e0;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+        }
+
+        /* Accessibility focus indicator */
+        input[type="text"]:focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+        
+        button {
+            padding: 1rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 1.125rem;
+            font-weight: 500;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 120px;
+            justify-content: center;
+        }
+        
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+        
+        button:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button .icon {
+            font-size: 1.25rem;
+        }
+        
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border: 2px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            margin-top: 0.5rem;
+            box-shadow: var(--shadow-md);
+            z-index: 1000;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) #e2e8f0;
+        }
+        
+        .autocomplete-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .autocomplete-list::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+        
+        .autocomplete-list::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+        
+        .autocomplete-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #e2e8f0;
+            transition: var(--transition);
+            color: var(--text-primary);
+        }
+        
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        
+        .autocomplete-item:hover {
+            background: #f7fafc;
+        }
+
+        .autocomplete-item:focus {
+            background: #f7fafc;
+            outline: none;
+        }
+        
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            padding: 0.5rem;
+        }
+        
+        .book-card {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .book-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .book-card .fav-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 999px;
+            padding: 6px 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.06);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+        }
+        
+        .book-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .book-card:hover::after {
+            opacity: 1;
+        }
+        
+        .book-image {
+            width: 100%;
+            height: 320px;
+            object-fit: cover;
+            border-radius: var(--radius-md);
+            background: #f7fafc;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .book-image:hover {
+            transform: scale(1.02);
+        }
+        
+        .book-title {
+            font-weight: 600;
+            font-size: 1.125rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .book-author {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .book-rating {
+            font-size: 1rem;
+            color: var(--accent-color);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .book-rating .star {
+            color: #ffd700;
+        }
+        
+        .book-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .recommendation-card {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            border: 1px solid #e2e8f0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .recommendation-card:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .recommendation-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .recommendation-title::before {
+            content: '📚';
+            font-size: 1.5rem;
+        }
+        
+        .similarity-container {
+            margin-top: 1rem;
+        }
+        
+        .similarity-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        
+        .similarity-bar {
+            width: 100%;
+            height: 0.5rem;
+            background: #e2e8f0;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .similarity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: var(--radius-lg);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid #e2e8f0;
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #fff5f5;
+            color: var(--error-color);
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            margin: 1.5rem 0;
+            border: 1px solid #fed7d7;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 500;
+        }
+        
+        .error::before {
+            content: '⚠️';
+            font-size: 1.5rem;
+        }
+
+        /* Accessibility improvements */
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Modal styles */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(10,20,30,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal {
+            width: min(900px, 95%);
+            background: var(--bg-secondary);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-lg);
+            max-height: 85vh;
+            overflow: auto;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: transparent;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #1a202c;
+                --bg-secondary: #2d3748;
+                --text-primary: #f7fafc;
+                --text-secondary: #cbd5e0;
+            }
+
+            .book-image {
+                background: #2d3748;
+            }
+
+            input[type="text"] {
+                background: #2d3748;
+                border-color: #4a5568;
+                color: #f7fafc;
+            }
+
+            input[type="text"]:hover {
+                border-color: #718096;
+            }
+
+            .error {
+                background: #742a2a;
+                border-color: #9b2c2c;
+            }
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+        
+        .searched-book {
+            background: linear-gradient(135deg, #4a90e2 0%, #7b68ee 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .searched-book h2 {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="visually-hidden">Skip to main content</a>
+    
+    <div class="container">
+        <header role="banner">
+            <h1>
+                <span aria-hidden="true">📚</span>
+                <span>Book Recommendation System</span>
+            </h1>
+            <p class="header-subtitle">Discover your next favorite book through personalized recommendations</p>
+        </header>
+        
+        <main id="main-content">
+            <nav role="navigation" aria-label="Main navigation">
+                <div class="tabs" role="tablist">
+                    <button 
+                        class="tab-button active" 
+                        onclick="showTab('popular')" 
+                        role="tab" 
+                        aria-selected="true" 
+                        aria-controls="popular-tab" 
+                        id="popular-tab-btn">
+                        <span aria-hidden="true">📊</span>
+                        Popular Books
+                    </button>
+                    <button 
+                        class="tab-button" 
+                        onclick="showTab('search')" 
+                        role="tab" 
+                        aria-selected="false" 
+                        aria-controls="search-tab"
+                        id="search-tab-btn">
+                        <span aria-hidden="true">🔍</span>
+                        Search & Recommendations
+                    </button>
+                </div>
+            </nav>
+            
+            <!-- Toolbar with extra buttons -->
+            <div class="toolbar" style="display:flex;gap:0.5rem;justify-content:center;margin-bottom:1rem;">
+                <button class="tab-button" id="refresh-btn" onclick="loadPopularBooks(24)">🔁 Refresh</button>
+                <button class="tab-button" id="top-rated-btn" onclick="loadPopularBooks(50)">🏆 Top Rated</button>
+                <button class="tab-button" id="surprise-btn" onclick="surpriseMe()">🎲 Surprise Me</button>
+                <button class="tab-button" id="export-btn" onclick="exportPopular()">📤 Export</button>
+            </div>
+        
+        <!-- Popular Books Tab -->
+        <div id="popular-tab" class="tab-content active">
+            <div class="loading" id="popular-loading">Loading popular books...</div>
+            <div class="books-grid" id="popular-books"></div>
+        </div>
+        
+        <!-- Search & Recommendations Tab -->
+        <div id="search-tab" class="tab-content">
+            <section class="search-section" aria-labelledby="search-heading">
+                <h2 id="search-heading" class="visually-hidden">Book Search</h2>
+                
+                <div class="search-box">
+                    <div class="search-wrapper">
+                        <label for="searchInput" class="visually-hidden">Search for a book</label>
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            placeholder="Search for a book (e.g., 'To Kill a Mockingbird')..."
+                            aria-describedby="search-desc"
+                            autocomplete="off">
+                        <div id="search-desc" class="visually-hidden">
+                            Type a book title to search and get personalized recommendations
+                        </div>
+                    </div>
+                    
+                    <button 
+                        onclick="searchBook()" 
+                        aria-label="Search for books">
+                        <span aria-hidden="true">🔍</span>
+                        <span>Search</span>
+                    </button>
+                </div>
+                
+                <div 
+                    class="autocomplete-list" 
+                    id="autocomplete" 
+                    role="listbox" 
+                    aria-label="Book suggestions">
+                </div>
+            </section>
+            
+            <section 
+                id="search-results" 
+                aria-live="polite" 
+                aria-atomic="true">
+                <div class="loading" role="status">
+                    <span class="visually-hidden">Ready to search</span>
+                    Enter a book title to get recommendations
+                </div>
+            </section>
+        </div>
+
+        <footer role="contentinfo">
+            <p class="text-center text-secondary mt-8">
+                © 2025 Book Recommendation System. All rights reserved.
+            </p>
+        </footer>
+    </div>
+
+    <!-- Book detail modal -->
+    <div id="modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="modal" id="book-modal">
+            <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
+            <div id="modal-content">
+                <div style="display:flex;gap:1.5rem;align-items:flex-start;">
+                    <img id="modal-cover" src="" alt="Book cover" style="width:220px;height:300px;border-radius:0.75rem;object-fit:cover;box-shadow:var(--shadow-sm);">
+                    <div style="flex:1;">
+                        <h3 id="modal-title" style="margin:0 0 0.5rem 0;font-size:1.5rem;"></h3>
+                        <p id="modal-author" style="margin:0 0 1rem 0;color:var(--text-secondary);"></p>
+                        <p id="modal-desc" style="color:var(--text-secondary);">This is a quick preview. Click "Get recommendations" to fetch similar books.</p>
+                        <div style="margin-top:1rem;display:flex;gap:0.75rem;">
+                            <button onclick="fetchRecommendationsForModal()" class="tab-button">Get recommendations</button>
+                            <button onclick="toggleFavorite(document.getElementById('modal-title').textContent)" class="tab-button" style="background:transparent;color:var(--primary-color);border:1px solid rgba(74,144,226,0.12);">❤ Favorite</button>
+                        </div>
+                    </div>
+                </div>
+                <hr style="margin:1rem 0;border:none;border-top:1px solid #e6eef8;">
+                <div id="modal-recommendations"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let autocompleteTimeout;
+        let currentFocus = -1;
+        
+        // Load popular books on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            loadPopularBooks();
+            setupAccessibility();
+        });
+
+        function setupAccessibility() {
+            const searchInput = document.getElementById('searchInput');
+            
+            // Setup autocomplete
+            searchInput.addEventListener('input', function() {
+                clearTimeout(autocompleteTimeout);
+                const query = this.value.trim();
+                
+                if (query.length < 2) {
+                    hideAutocomplete();
+                    return;
+                }
+                
+                autocompleteTimeout = setTimeout(() => {
+                    searchAutocomplete(query);
+                }, 300);
+            });
+            
+            // Keyboard navigation for autocomplete
+            searchInput.addEventListener('keydown', function(e) {
+                const autocomplete = document.getElementById('autocomplete');
+                const items = autocomplete.getElementsByClassName('autocomplete-item');
+                
+                if (items.length === 0) return;
+                
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    currentFocus++;
+                    addActive(items);
+                }
+                else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    currentFocus--;
+                    addActive(items);
+                }
+                else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (currentFocus > -1) {
+                        if (items[currentFocus]) {
+                            items[currentFocus].click();
+                        }
+                    }
+                }
+                else if (e.key === 'Escape') {
+                    hideAutocomplete();
+                }
+            });
+            
+            // Close autocomplete when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.search-section')) {
+                    hideAutocomplete();
+                }
+            });
+
+            // Tab navigation
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => {
+                button.addEventListener('keydown', function(e) {
+                    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        const current = Array.from(tabButtons).indexOf(this);
+                        const next = e.key === 'ArrowLeft' ? 
+                            (current - 1 + tabButtons.length) % tabButtons.length :
+                            (current + 1) % tabButtons.length;
+                        tabButtons[next].click();
+                        tabButtons[next].focus();
+                    }
+                });
+            });
+        }
+        
+        // Keep the last fetched popular data so we can export it
+        let lastPopularData = [];
+
+        async function loadPopularBooks(n = 50) {
+            const loading = document.getElementById('popular-loading');
+            const container = document.getElementById('popular-books');
+
+            try {
+                loading.innerHTML = `
+                    <div class="loading" role="status">
+                        <div class="loading-spinner" aria-hidden="true"></div>
+                        <span>Loading popular books...</span>
+                    </div>
+                `;
+                loading.style.display = 'block';
+                container.innerHTML = '';
+
+                const response = await fetch(`/api/popular?n=${encodeURIComponent(n)}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    container.innerHTML = `
+                        <div class="error" role="alert">
+                            <span class="visually-hidden">Error: </span>
+                            ${escapeHtml(data.error)}
+                        </div>
+                    `;
+                    lastPopularData = [];
+                    return;
+                }
+
+                if (!data.books || data.books.length === 0) {
+                    container.innerHTML = `
+                        <div class="loading" role="status">
+                            No popular books found
+                        </div>
+                    `;
+                    lastPopularData = [];
+                    return;
+                }
+
+                lastPopularData = data.books;
+
+                container.innerHTML = data.books.map((book, index) => {
+                    const titleEsc = escapeHtml(book['Book-Title'] || '');
+                    const img = escapeHtml(book['Image-URL-M'] || '');
+                    const author = escapeHtml(book['Book-Author'] || 'Unknown');
+                    const avg = book['avg_rating'] ? Number(book['avg_rating']).toFixed(2) : 'N/A';
+                    const num = book['num_rating'] ? book['num_rating'].toLocaleString() : 0;
+                    return `
+                        <article class="book-card" tabindex="0" onclick="viewDetails('${titleEsc.replace(/'/g, "\\'")}')">
+                            <button class="fav-btn" onclick="event.stopPropagation(); toggleFavorite('${titleEsc.replace(/'/g, "\\'")}')">♡</button>
+                            <img src="${img}" alt="Cover of ${titleEsc}" class="book-image" onerror="this.style.display='none'" loading="lazy">
+                            <div class="book-title">${titleEsc}</div>
+                            <div class="book-author">by ${author}</div>
+                            <div class="book-rating" aria-label="Rating: ${avg} out of 5 stars"><span class="star" aria-hidden="true">⭐</span>${avg}</div>
+                            <div class="book-stats"><span aria-label="Number of ratings">📊 ${num} ratings</span></div>
+                        </article>
+                    `;
+                }).join('');
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="error" role="alert">
+                        <span class="visually-hidden">Error: </span>
+                        Error loading books: ${escapeHtml(error.message)}
+                    </div>
+                `;
+                lastPopularData = [];
+            } finally {
+                loading.style.display = 'none';
+                updateFavoriteButtons();
+            }
+        }
+
+        async function surpriseMe() {
+            const resultsDiv = document.getElementById('search-results');
+            resultsDiv.innerHTML = `
+                <div class="loading" role="status">
+                    <div class="loading-spinner" aria-hidden="true"></div>
+                    <span>Picking a random book for you...</span>
+                </div>
+            `;
+
+            try {
+                const resp = await fetch('/api/random');
+                const data = await resp.json();
+                if (!data.success) {
+                    resultsDiv.innerHTML = `<div class="error">${escapeHtml(data.error || 'Could not fetch a random book')}</div>`;
+                    return;
+                }
+
+                const b = data.book;
+                const title = b['Book-Title'] || b['Book-Title'] || 'Unknown';
+                resultsDiv.innerHTML = `
+                    <div class="searched-book">
+                        <h2>🎲 Surprise: ${escapeHtml(title)}</h2>
+                        <p>by ${escapeHtml(b['Book-Author'] || 'Unknown')}</p>
+                    </div>
+                `;
+                // Also prefill search input so user can request recommendations for it
+                document.getElementById('searchInput').value = title;
+            } catch (e) {
+                resultsDiv.innerHTML = `<div class="error">Error fetching surprise: ${escapeHtml(e.message)}</div>`;
+            }
+        }
+
+        function exportPopular() {
+            if (!lastPopularData || lastPopularData.length === 0) {
+                alert('No popular data to export.');
+                return;
+            }
+            const dataStr = JSON.stringify(lastPopularData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'popular_books.json';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
+        function announceToScreenReader(message) {
+            const announce = document.createElement('div');
+            announce.setAttribute('aria-live', 'polite');
+            announce.setAttribute('class', 'visually-hidden');
+            announce.textContent = message;
+            document.body.appendChild(announce);
+            setTimeout(() => announce.remove(), 1000);
+        }
+
+        function hideAutocomplete() {
+            const autocomplete = document.getElementById('autocomplete');
+            autocomplete.style.display = 'none';
+            currentFocus = -1;
+        }
+
+        function addActive(items) {
+            removeActive(items);
+            
+            if (currentFocus >= items.length) currentFocus = 0;
+            if (currentFocus < 0) currentFocus = items.length - 1;
+            
+            if (items[currentFocus]) {
+                items[currentFocus].classList.add('active');
+                items[currentFocus].setAttribute('aria-selected', 'true');
+                items[currentFocus].scrollIntoView({ block: 'nearest' });
+            }
+        }
+
+        function removeActive(items) {
+            Array.from(items).forEach(item => {
+                item.classList.remove('active');
+                item.setAttribute('aria-selected', 'false');
+            });
+        }
+        
+        async function searchAutocomplete(query) {
+            try {
+                const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=10`);
+                const data = await response.json();
+                
+                const autocomplete = document.getElementById('autocomplete');
+                
+                if (!data.success || data.books.length === 0) {
+                    autocomplete.style.display = 'none';
+                    return;
+                }
+                
+                autocomplete.innerHTML = data.books.map(book => `
+                    <div class="autocomplete-item" onclick="selectBook('${book.replace(/'/g, "\\'")}')">${book}</div>
+                `).join('');
+                autocomplete.style.display = 'block';
+            } catch (error) {
+                console.error('Autocomplete error:', error);
+            }
+        }
+        
+        function selectBook(bookTitle) {
+            document.getElementById('searchInput').value = bookTitle;
+            document.getElementById('autocomplete').style.display = 'none';
+            searchBook();
+        }
+        
+        async function searchBook() {
+            const query = document.getElementById('searchInput').value.trim();
+            const resultsDiv = document.getElementById('search-results');
+            
+            if (!query) {
+                resultsDiv.innerHTML = '<div class="error">Please enter a book title</div>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = '<div class="loading">Searching for recommendations...</div>';
+            
+            try {
+                const response = await fetch('/api/recommend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        book_title: query,
+                        n: 10
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    resultsDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                    return;
+                }
+                
+                if (!data.recommendations || data.recommendations.length === 0) {
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            No recommendations found for "${query}". 
+                            The book may not have enough ratings in the dataset.
+                        </div>
+                    `;
+                    return;
+                }
+                
+                let html = '';
+                
+                // Display searched book
+                if (data.book_info) {
+                    html += `
+                        <div class="searched-book">
+                            <h2>📖 ${data.book_info['Book-Title'] || query}</h2>
+                            <p>by ${data.book_info['Book-Author'] || 'Unknown'}</p>
+                        </div>
+                    `;
+                }
+                
+                // Display recommendations
+                html += '<h2 style="margin: 20px 0;">Recommended Books:</h2>';
+                data.recommendations.forEach(rec => {
+                    const similarityPercent = (rec.similarity * 100).toFixed(2);
+                    html += `
+                        <div class="recommendation-card">
+                            <div class="recommendation-title">${rec.book}</div>
+                            <div style="margin-top: 10px;">
+                                <strong>Similarity: ${similarityPercent}%</strong>
+                                <div class="similarity-bar">
+                                    <div class="similarity-fill" style="width: ${similarityPercent}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                resultsDiv.innerHTML = html;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Allow Enter key to search
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchBook();
+            }
+        });
+
+        // Favorites management (persisted to localStorage)
+        let favorites = new Set();
+
+        function loadFavorites() {
+            try {
+                const raw = localStorage.getItem('favorites');
+                if (raw) {
+                    const arr = JSON.parse(raw);
+                    favorites = new Set(arr || []);
+                }
+            } catch (e) {
+                console.warn('Could not load favorites', e);
+                favorites = new Set();
+            }
+        }
+
+        function saveFavorites() {
+            try {
+                localStorage.setItem('favorites', JSON.stringify(Array.from(favorites)));
+            } catch (e) {
+                console.warn('Could not save favorites', e);
+            }
+        }
+
+        function updateFavoriteButtons() {
+            // Update heart icon on cards and modal
+            const cards = document.querySelectorAll('.book-card');
+            cards.forEach(card => {
+                const titleEl = card.querySelector('.book-title');
+                const favBtn = card.querySelector('.fav-btn');
+                if (!titleEl || !favBtn) return;
+                const title = titleEl.textContent.trim();
+                favBtn.textContent = favorites.has(title) ? '♥' : '♡';
+                favBtn.setAttribute('aria-pressed', favorites.has(title) ? 'true' : 'false');
+            });
+
+            // Modal button state (if open)
+            const modalTitle = document.getElementById('modal-title');
+            if (modalTitle) {
+                const t = modalTitle.textContent.trim();
+                const modalFav = document.querySelector('#book-modal .tab-button[onclick*="toggleFavorite"]');
+                if (modalFav) modalFav.textContent = favorites.has(t) ? '♥ Favorited' : '❤ Favorite';
+            }
+        }
+
+        function toggleFavorite(bookTitle) {
+            if (!bookTitle) return;
+            if (favorites.has(bookTitle)) favorites.delete(bookTitle);
+            else favorites.add(bookTitle);
+            saveFavorites();
+            updateFavoriteButtons();
+            announceToScreenReader(favorites.has(bookTitle) ? `${bookTitle} added to favorites` : `${bookTitle} removed from favorites`);
+        }
+
+        function viewDetails(bookTitle) {
+            // Try to find full info in lastPopularData
+            let info = null;
+            if (lastPopularData && lastPopularData.length) {
+                info = lastPopularData.find(b => (b['Book-Title'] || '').trim() === bookTitle.trim());
+            }
+
+            const modal = document.getElementById('modal-backdrop');
+            const cover = document.getElementById('modal-cover');
+            const titleEl = document.getElementById('modal-title');
+            const authorEl = document.getElementById('modal-author');
+            const descEl = document.getElementById('modal-desc');
+            const recContainer = document.getElementById('modal-recommendations');
+
+            titleEl.textContent = bookTitle;
+            authorEl.textContent = info ? `by ${info['Book-Author'] || 'Unknown'}` : '';
+            cover.src = info ? (info['Image-URL-M'] || '') : '';
+            cover.alt = `Cover of ${bookTitle}`;
+            descEl.textContent = info && info['Book-Title'] ? (info['Book-Title'] + ' — A recommended read.') : 'No description available.';
+            recContainer.innerHTML = '';
+
+            openModal();
+            updateFavoriteButtons();
+        }
+
+        function openModal() {
+            const backdrop = document.getElementById('modal-backdrop');
+            backdrop.style.display = 'flex';
+            backdrop.setAttribute('aria-hidden', 'false');
+            // focus the close button for accessibility
+            const closeBtn = document.querySelector('.modal-close');
+            if (closeBtn) closeBtn.focus();
+        }
+
+        function closeModal() {
+            const backdrop = document.getElementById('modal-backdrop');
+            backdrop.style.display = 'none';
+            backdrop.setAttribute('aria-hidden', 'true');
+        }
+
+        async function fetchRecommendationsForModal() {
+            const title = document.getElementById('modal-title').textContent.trim();
+            const recContainer = document.getElementById('modal-recommendations');
+            if (!title) return;
+
+            recContainer.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner" aria-hidden="true"></div>
+                    <span>Fetching recommendations...</span>
+                </div>
+            `;
+
+            try {
+                const resp = await fetch('/api/recommend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ book_title: title, n: 8 })
+                });
+                const data = await resp.json();
+                if (!data.success) {
+                    recContainer.innerHTML = `<div class="error">${escapeHtml(data.error || 'No recommendations')}</div>`;
+                    return;
+                }
+
+                if (!data.recommendations || data.recommendations.length === 0) {
+                    recContainer.innerHTML = `<div class="error">No recommendations found for ${escapeHtml(title)}</div>`;
+                    return;
+                }
+
+                recContainer.innerHTML = data.recommendations.map(r => `
+                    <div class="recommendation-card">
+                        <div class="recommendation-title">${escapeHtml(r.book)}</div>
+                        <div style="margin-top:8px;">Similarity: ${(r.similarity*100).toFixed(2)}%</div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                recContainer.innerHTML = `<div class="error">Error fetching recommendations: ${escapeHtml(e.message)}</div>`;
+            }
+        }
+
+        // Initialize favorites on page load
+        loadFavorites();
+        updateFavoriteButtons();
+    </script>
+</body>
+</html>
+
