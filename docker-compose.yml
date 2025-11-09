@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  book-recommendation:
+    build: .
+    container_name: book-recommendation-app
+    volumes:
+      - ./Books.csv:/app/Books.csv
+      - ./Ratings.csv:/app/Ratings.csv
+      - ./Users.csv:/app/Users.csv
+    ports:
+      - "5000:5000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
